@@ -1,0 +1,8 @@
+C:/LocalFiles/Robotics/Projects/SkylineFRCTemplate/cmake-build-debug/CMakeFiles/frcUserProgram_debug_deploy.dir
+C:/LocalFiles/Robotics/Projects/SkylineFRCTemplate/cmake-build-debug/CMakeFiles/fake_frcUserProgram_debug.dir
+C:/LocalFiles/Robotics/Projects/SkylineFRCTemplate/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/LocalFiles/Robotics/Projects/SkylineFRCTemplate/cmake-build-debug/CMakeFiles/frcUserProgram_debug_build.dir
+C:/LocalFiles/Robotics/Projects/SkylineFRCTemplate/cmake-build-debug/CMakeFiles/fake_frcUserProgram_release.dir
+C:/LocalFiles/Robotics/Projects/SkylineFRCTemplate/cmake-build-debug/CMakeFiles/frcUserProgram_release_build.dir
+C:/LocalFiles/Robotics/Projects/SkylineFRCTemplate/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+C:/LocalFiles/Robotics/Projects/SkylineFRCTemplate/cmake-build-debug/CMakeFiles/frcUserProgram_release_deploy.dir

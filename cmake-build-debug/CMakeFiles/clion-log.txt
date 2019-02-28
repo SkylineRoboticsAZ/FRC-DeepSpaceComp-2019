@@ -1,0 +1,4 @@
+C:\LocalFiles\Programs\Clion\bin\cmake\win\bin\cmake.exe -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - MinGW Makefiles" C:\LocalFiles\Robotics\Projects\SkylineFRCTemplate
+-- Configuring done
+-- Generating done
+-- Build files have been written to: C:/LocalFiles/Robotics/Projects/SkylineFRCTemplate/cmake-build-debug
