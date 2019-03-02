@@ -39,6 +39,13 @@ public:
     bool isHoldPositionEnabled() const;
 
     void setTargetPosition(Position position);
+
+    // Sets the percentage power for manual control of the elevator.
+    // If the hold position feature is enabled, a power of 0% will
+    // cause the elevator to use position PID control to hold its
+    // current position. In this mode note that a call to setTargetPosition() 
+    // will override holding the position, still allowing the elevator to 
+    // move to the new target.
     void setPower(double percentPower) override;
 
 private:

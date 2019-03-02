@@ -2,7 +2,7 @@
 
 #include "controls/Inputs.hpp"
 #include "subsystems/Subsystems.hpp"
-#include "subsystems/drive/SimpleDriveTrain.hpp"
+#include "subsystems/drive/DriveTrainBase.hpp"
 
 #include <frc/commands/Command.h>
 
@@ -21,7 +21,7 @@ public:
         controls::Input turnFactor = controls::Input::turnFactor;
     };
 
-    DriveXBox(subsystems::SimpleDriveTrain *driveTrain, const Config &config);
+    DriveXBox(subsystems::DriveTrainBase *driveTrain, const Config &config);
 
     void Initialize() override;
     void Execute() override;
@@ -31,7 +31,7 @@ public:
 
 private:
     const Config mConfig;
-    subsystems::SimpleDriveTrain *mDriveTrain;
+    subsystems::DriveTrainBase *mDriveTrain;
 };
 
 }

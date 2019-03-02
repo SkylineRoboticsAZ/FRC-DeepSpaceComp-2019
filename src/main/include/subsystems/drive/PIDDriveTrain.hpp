@@ -15,33 +15,30 @@
 namespace skyline
 {
 
-class IBasicMotorController;
+class IPIDMotorController;
 
 namespace subsystems
 {
 
 /**
- * A simple drive train with left and right side motors
- * in a percentage power control mode
+ * An advanced drive train which utilizes PID motor controllers
+ * to move using velocity instead of percent voltage
  */
-class SimpleDriveTrain : public DriveTrainBase
+class PIDDriveTrain : public DriveTrainBase
 {
 public:
-    typedef std::unique_ptr<IBasicMotorController> Motor;
+    typedef std::unique_ptr<IPIDMotorController> Motor;
 
-    SimpleDriveTrain(Motor leftSide, Motor rightSide, 
-        const wpi::Twine &name = "SimpleDriveTrain");
-    ~SimpleDriveTrain();
+    PIDDriveTrain(Motor leftMotor, Motor rightMotor, 
+        double maxVelocity, const wpi::Twine &name = "PIDDriveTrain");
+    ~PIDDriveTrain();
 
     void setLeftPower(double percentPower) override;
     void setRightPower(double percentPower) override;
 
 private:
-    SimpleDriveTrain(const SimpleDriveTrain &other);
-    const SimpleDriveTrain &operator=(const SimpleDriveTrain &other);
-
-    class Impl;
-    std::unique_ptr<Impl> mImpl;
+    Motor mLeftMotor, mRightMotor;
+    const double mMaxVelocity;
 };
 
 }

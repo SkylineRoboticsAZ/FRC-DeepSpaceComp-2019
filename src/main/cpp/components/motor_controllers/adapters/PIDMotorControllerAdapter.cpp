@@ -4,6 +4,7 @@
 
 #include <frc/PIDController.h>
 #include <algorithm>
+#include <cmath>
 
 
 namespace skyline
@@ -16,8 +17,8 @@ public:
         double rampPeriod, double maxForwardOutput, 
         double maxReverseOutput) : mOutput(output), 
         mMaxRate(calcMaxRate(loopPeriod, rampPeriod)), 
-        mMaxForwardOutput(abs(maxForwardOutput)),
-        mMaxReverseOutput(abs(maxReverseOutput)) {}
+        mMaxForwardOutput(fabs(maxForwardOutput)),
+        mMaxReverseOutput(fabs(maxReverseOutput)) {}
 
     void PIDWrite(double output) 
     {
@@ -29,12 +30,15 @@ public:
                 newOutput = mLastOutput + mMaxRate;
             else if (difference < -mMaxRate)
                 newOutput = mLastOutput - mMaxRate;
+
+            mLastOutput = newOutput;
         }
 
-        if (newOutput >= 0)
+        if (newOutput >= 0) {
             mOutput->PIDWrite(std::min(newOutput, mMaxForwardOutput));
-        else
+        } else {
             mOutput->PIDWrite(std::max(newOutput, -mMaxReverseOutput));
+        }
     }
 
     double calcMaxRate(double loopPeriod, double rampPeriod) 

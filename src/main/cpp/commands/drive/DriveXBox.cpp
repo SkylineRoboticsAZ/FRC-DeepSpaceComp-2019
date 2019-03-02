@@ -10,7 +10,7 @@ namespace skyline
 namespace commands
 {
 
-DriveXBox::DriveXBox(subsystems::SimpleDriveTrain *driveTrain, const Config &config) :
+DriveXBox::DriveXBox(subsystems::DriveTrainBase *driveTrain, const Config &config) :
 mDriveTrain(driveTrain), mConfig(config)
 {
     Requires(driveTrain);

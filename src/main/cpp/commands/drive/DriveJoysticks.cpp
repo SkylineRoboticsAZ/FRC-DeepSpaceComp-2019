@@ -5,12 +5,11 @@
 
 namespace skyline
 {
-
 namespace commands
 {
 
-DriveJoysticks::DriveJoysticks(subsystems::SimpleDriveTrain *driveTrain, const Config &config) :
-mDriveTrain(driveTrain), mConfig(config)
+DriveJoysticks::DriveJoysticks(subsystems::DriveTrainBase *driveTrain, 
+const Config &config) : mDriveTrain(driveTrain), mConfig(config)
 {
     Requires(mDriveTrain);
 }
@@ -40,5 +39,4 @@ void DriveJoysticks::End() {}
 void DriveJoysticks::Interrupted() {}
 
 }
-
 }

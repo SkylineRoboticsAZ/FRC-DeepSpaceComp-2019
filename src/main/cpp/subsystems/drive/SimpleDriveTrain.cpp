@@ -11,7 +11,6 @@
 
 namespace skyline
 {
-
 namespace subsystems
 {
 
@@ -24,15 +23,12 @@ public:
     Motor mLeftSide, mRightSide;
 };
 
-SimpleDriveTrain::SimpleDriveTrain(Motor leftSide, Motor rightSide) : 
-SubsystemBase("SimpleDriveTrain"), mImpl(std::make_unique<Impl>(std::move(leftSide), std::move(rightSide))) 
-{}
+SimpleDriveTrain::SimpleDriveTrain(Motor leftSide, Motor rightSide, 
+        const wpi::Twine &name) : DriveTrainBase(name), 
+        mImpl(std::make_unique<Impl>(
+            std::move(leftSide), std::move(rightSide))) {}
 
 SimpleDriveTrain::~SimpleDriveTrain() {}
-
-void SimpleDriveTrain::InitDefaultCommand() 
-{
-}
 
 void SimpleDriveTrain::setLeftPower(double percentPower) 
 {
@@ -45,5 +41,4 @@ void SimpleDriveTrain::setRightPower(double percentPower)
 }
 
 }
-
 }

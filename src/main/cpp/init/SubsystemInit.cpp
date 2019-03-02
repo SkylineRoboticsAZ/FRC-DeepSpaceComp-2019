@@ -6,12 +6,14 @@
 #include "commands/ActuateJoystick.hpp"
 
 #include "subsystems/drive/SimpleDriveTrain.hpp"
+#include "subsystems/drive/PIDDriveTrain.hpp"
 #include "subsystems/Elevator.hpp"
+
+#include "components/sensors/PIDEncoder.hpp"
 
 #include "components/motor_controllers/IBasicMotorController.hpp"
 #include "components/motor_controllers/groups/MotorControllerGroup.hpp"
 #include "components/motor_controllers/groups/FollowableTalonSRX.hpp"
-
 #include "components/motor_controllers/adapters/CtreMotorControllerAdapter.hpp"
 #include "components/motor_controllers/adapters/WpiMotorControllerAdapter.hpp"
 #include "components/motor_controllers/adapters/PIDMotorControllerAdapter.hpp"
@@ -79,11 +81,50 @@ SubsystemPtr initDriveTrain()
     using constants::ports::rightDriveMotors;
 
     if (leftDriveMotors.size() > 0 && rightDriveMotors.size() > 0) {
-        IBasicMotorPtr leftMotor = adaptMotor(createTalonSRXGroup(leftDriveMotors, false, NeutralMode::Coast));
-        IBasicMotorPtr rightMotor = adaptMotor(createTalonSRXGroup(rightDriveMotors, true, NeutralMode::Coast));
+        TalonSRXPtr leftMotor = createTalonSRXGroup(leftDriveMotors, false, NeutralMode::Coast);
+        IBasicMotorPtr rightMotor = adaptMotor(
+            createTalonSRXGroup(rightDriveMotors, true, NeutralMode::Coast));
 
-        std::unique_ptr<SimpleDriveTrain> driveTrain = 
-            std::make_unique<SimpleDriveTrain>(std::move(leftMotor), std::move(rightMotor));
+        TalonSRXConfiguration config;
+        using ctre::phoenix::motorcontrol::VelocityMeasPeriod;
+        config.velocityMeasurementPeriod = VelocityMeasPeriod::Period_20Ms;
+        config.velocityMeasurementWindow = 4;
+
+        SlotConfiguration pidConfig;
+        pidConfig.allowableClosedloopError = 10;
+        pidConfig.kF = .496120271581;
+        pidConfig.kP = 0;
+        pidConfig.kI = 0;
+        pidConfig.kD = 0;
+
+        config.slot0 = pidConfig;
+
+        leftMotor->ConfigAllSettings(config);
+        leftMotor->SelectProfileSlot(0, 0);
+        leftMotor->SetSensorPhase(true);
+
+        PIDMotorControllerAdapter::PIDConfig rightPidConfig;
+        rightPidConfig.allowableError = 10;
+        rightPidConfig.maxForwardOutput = 1;
+        rightPidConfig.maxReverseOutput = 1;
+        rightPidConfig.kF = .00048481368111;
+
+        IPIDMotorPtr leftPidMotor = adaptMotor(std::move(leftMotor));
+
+        std::shared_ptr<frc::Encoder> rightEncoder = 
+            std::make_shared<frc::Encoder>(2, 3, true, 
+                frc::Encoder::EncodingType::k1X);
+
+        std::shared_ptr<IPIDSensor> rightPidEncoder = 
+            std::make_shared<PIDEncoder>(rightEncoder);
+
+        IPIDMotorPtr rightPidMotor = 
+            std::make_unique<PIDMotorControllerAdapter>(
+                std::move(rightMotor), rightPidEncoder, rightPidConfig);
+
+        std::unique_ptr<PIDDriveTrain> driveTrain = 
+            std::make_unique<PIDDriveTrain>(
+                std::move(leftPidMotor), std::move(rightPidMotor), 2062.64806247);
 
         driveTrain->SetDefaultCommand(
             std::make_unique<commands::DriveXBox>(driveTrain.get(), commands::DriveXBox::Config()));
@@ -105,8 +146,8 @@ SubsystemPtr initElevator()
         using ctre::phoenix::motorcontrol::VelocityMeasPeriod;
         config.velocityMeasurementPeriod = VelocityMeasPeriod::Period_20Ms;
         config.velocityMeasurementWindow = 4;
-        config.peakOutputForward = .3;
-        config.peakOutputReverse = -.3;
+        /*config.peakOutputForward = .3;
+        config.peakOutputReverse = -.3;*/
         config.clearPositionOnLimitF = true;
 
         SlotConfiguration pidConfig;
@@ -123,6 +164,22 @@ SubsystemPtr initElevator()
         motor->SelectProfileSlot(0, 0);
         motor->SetSensorPhase(true);
 
+        PIDMotorControllerAdapter::PIDConfig softwarePidConfig;
+        softwarePidConfig.maxForwardOutput = 1;
+        softwarePidConfig.maxReverseOutput = 1;
+        softwarePidConfig.kP = 1.0/360.0;
+        softwarePidConfig.allowableError = 10;
+
+        std::shared_ptr<frc::Encoder> encoder = 
+            std::make_shared<frc::Encoder>(2, 3, true, 
+                frc::Encoder::EncodingType::k1X);
+
+        std::shared_ptr<IPIDSensor> pidEncoder = 
+            std::make_shared<PIDEncoder>(encoder);
+
+        IPIDMotorPtr pidMotor = std::make_unique<PIDMotorControllerAdapter>(
+            adaptMotor(std::move(motor)), pidEncoder, softwarePidConfig);
+
         Elevator::Positions positions;
         positions[Elevator::Position::Bottom] = 0;
         positions[Elevator::Position::DiskBottom] = 500;
@@ -133,7 +190,7 @@ SubsystemPtr initElevator()
         positions[Elevator::Position::BallTop] = 3000;
 
         std::unique_ptr<Elevator> elevator = 
-            std::make_unique<Elevator>(adaptMotor(std::move(motor)), positions);
+            std::make_unique<Elevator>(std::move(pidMotor), positions);
 
         elevator->setHoldPositionEnabled(true);
 
