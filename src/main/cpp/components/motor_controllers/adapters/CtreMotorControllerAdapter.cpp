@@ -6,28 +6,106 @@
 namespace skyline
 {
 
-CtreMotorControllerAdapter::CtreMotorControllerAdapter(std::unique_ptr<Motor> motor) :
-mMotor(std::move(motor)) {}
+CtreMotorControllerAdapter::CtreMotorControllerAdapter(
+    std::unique_ptr<Motor> motor, double sensorScaleFactor) :
+    mMotor(std::move(motor)), mSensorScaleFactor(sensorScaleFactor) {}
 
-void CtreMotorControllerAdapter::setPower(double percentPower)
+void CtreMotorControllerAdapter::setP(double p)
 {
-    using ctre::phoenix::motorcontrol::ControlMode;
-    mMotor->Set(ControlMode::PercentOutput, percentPower);
+    mMotor->Config_kP(0, unscalePIDF(p), mTimeoutMs);
 }
 
-double CtreMotorControllerAdapter::getPower() const
+void CtreMotorControllerAdapter::setI(double i)
 {
-    return mMotor->GetMotorOutputPercent();
+    mMotor->Config_kI(0, unscalePIDF(i), mTimeoutMs);
 }
 
-void CtreMotorControllerAdapter::setInverted(bool isInverted)
+void CtreMotorControllerAdapter::setD(double d)
 {
-    mMotor->SetInverted(isInverted);
+    mMotor->Config_kD(0, unscalePIDF(d), mTimeoutMs);
 }
 
-bool CtreMotorControllerAdapter::getInverted() const
+void CtreMotorControllerAdapter::setF(double f)
 {
-    return mMotor->GetInverted();
+    mMotor->Config_kF(0, unscalePIDF(f), mTimeoutMs);
+}
+
+void CtreMotorControllerAdapter::setRampingPeriod(double period)
+{
+    mMotor->ConfigClosedloopRamp(period, mTimeoutMs);
+}
+
+void CtreMotorControllerAdapter::setAcceptableError(double error)
+{
+    const double nativeError = error * mSensorScaleFactor;
+    mMotor->ConfigAllowableClosedloopError(0, nativeError, mTimeoutMs);
+}
+
+void CtreMotorControllerAdapter::setPIDMaxForwardOutput(double percentPower)
+{
+    mMotor->ConfigClosedLoopPeakOutput(0, percentPower, mTimeoutMs);
+}
+
+void CtreMotorControllerAdapter::setPIDMaxReverseOutput(double percentPower)
+{
+    setPIDMaxForwardOutput(percentPower);
+}
+
+double CtreMotorControllerAdapter::p() const
+{
+    using ctre::phoenix::ParamEnum;
+    return scalePIDF(mMotor->ConfigGetParameter(
+        ParamEnum::eProfileParamSlot_P, 0, mTimeoutMs));
+}
+
+double CtreMotorControllerAdapter::i() const
+{
+    using ctre::phoenix::ParamEnum;
+    return scalePIDF(mMotor->ConfigGetParameter(
+        ParamEnum::eProfileParamSlot_I, 0, mTimeoutMs));
+}
+
+double CtreMotorControllerAdapter::d() const
+{
+    using ctre::phoenix::ParamEnum;
+    return scalePIDF(mMotor->ConfigGetParameter(
+        ParamEnum::eProfileParamSlot_D, 0, mTimeoutMs));
+}
+
+double CtreMotorControllerAdapter::f() const
+{
+    using ctre::phoenix::ParamEnum;
+    return scalePIDF(mMotor->ConfigGetParameter(
+        ParamEnum::eProfileParamSlot_F, 0, mTimeoutMs));
+}
+
+double CtreMotorControllerAdapter::rampingPeriod() const
+{
+    using ctre::phoenix::ParamEnum;
+    return mMotor->ConfigGetParameter(
+        ParamEnum::eClosedloopRamp, 0, mTimeoutMs);
+}
+
+double CtreMotorControllerAdapter::acceptableError() const
+{
+    using ctre::phoenix::ParamEnum;
+
+    const double nativeError = mMotor->ConfigGetParameter(
+        ParamEnum::eProfileParamSlot_AllowableErr, 0, mTimeoutMs);
+
+    return nativeError / mSensorScaleFactor;
+}
+
+double CtreMotorControllerAdapter::PIDMaxForwardOutput()
+{
+    using ctre::phoenix::ParamEnum;
+    return mMotor->ConfigGetParameter(
+        ParamEnum::eProfileParamSlot_PeakOutput, 0, mTimeoutMs);
+}
+
+double CtreMotorControllerAdapter::PIDMaxReverseOutput()
+{
+    return PIDMaxForwardOutput();
 }
 
 IPIDMotorController::Mode CtreMotorControllerAdapter::mode() const
@@ -73,6 +151,44 @@ void CtreMotorControllerAdapter::reset()
 {
     setPower(0);
     mMotor->SetIntegralAccumulator(0);
+}
+
+void CtreMotorControllerAdapter::setPower(double percentPower)
+{
+    using ctre::phoenix::motorcontrol::ControlMode;
+    mMotor->Set(ControlMode::PercentOutput, percentPower);
+}
+
+double CtreMotorControllerAdapter::getPower() const
+{
+    return mMotor->GetMotorOutputPercent();
+}
+
+void CtreMotorControllerAdapter::setInverted(bool isInverted)
+{
+    mMotor->SetInverted(isInverted);
+}
+
+bool CtreMotorControllerAdapter::getInverted() const
+{
+    return mMotor->GetInverted();
+}
+
+double CtreMotorControllerAdapter::scalePIDF(double unscaledValue) const
+{
+    return unscaledValue * (mSensorScaleFactor / mCtrePIDScale);
+}
+
+double CtreMotorControllerAdapter::unscalePIDF(double scaledValue) const
+{
+    return scaledValue * (mCtrePIDScale / mSensorScaleFactor);
+}
+
+IPIDMotorPtr adaptMotor(std::unique_ptr<IMotorController> motor, 
+    double sensorScaleFactor)
+{
+    return std::make_unique<skyline::CtreMotorControllerAdapter>
+        (std::move(motor), sensorScaleFactor);
 }
 
 }

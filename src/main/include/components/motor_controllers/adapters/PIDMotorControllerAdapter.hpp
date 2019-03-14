@@ -3,6 +3,7 @@
 #include "components/motor_controllers/IPIDMotorController.hpp"
 
 #include <memory>
+#include <atomic>
 
 
 namespace frc
@@ -20,22 +21,27 @@ class IPIDSensor;
 class PIDMotorControllerAdapter : public IPIDMotorController
 {
 public:
-    struct PIDConfig
-    {
-        double kP = 0;
-        double kI = 0;
-        double kD = 0;
-        double kF = 0;
-        double allowableError = 0;
-        double maxForwardOutput = 1;
-        double maxReverseOutput = 1;
-        double loopPeriod = .05;
-        double rampPeriod = 0;
-    };
-
     PIDMotorControllerAdapter(std::unique_ptr<IBasicMotorController> motor, 
-        std::shared_ptr<IPIDSensor> sensor, const PIDConfig &config);
+        std::shared_ptr<IPIDSensor> sensor, double loopPeriod = .05);
     ~PIDMotorControllerAdapter();
+
+    void setP(double p) override;
+    void setI(double i) override;
+    void setD(double d) override;
+    void setF(double f) override;
+    void setRampingPeriod(double period) override;
+    void setAcceptableError(double error) override;
+    void setPIDMaxForwardOutput(double percentPower) override;
+    void setPIDMaxReverseOutput(double percentPower) override;
+
+    double p() const override;
+    double i() const override;
+    double d() const override;
+    double f() const override;
+    double rampingPeriod() const override;
+    double acceptableError() const override;
+    double PIDMaxForwardOutput() override;
+    double PIDMaxReverseOutput() override;
 
     Mode mode() const override;
     void set(Mode mode, double value) override;
@@ -57,6 +63,9 @@ private:
     std::unique_ptr<RampedPIDOutput> mRampedOutput;
     std::shared_ptr<IPIDSensor> mSensor;
     std::unique_ptr<frc::PIDController> mPIDController;
+    std::atomic<double> mMaxForwardOutput, mMaxReverseOutput, mMaxRate;
+    const double mLoopPeriod;
+    double mAbsoluteTolerance = 0;
 };
 
 }

@@ -2,6 +2,8 @@
 
 #include <frc/SpeedController.h>
 
+#include <math.h>
+
 
 namespace skyline
 {
@@ -27,6 +29,12 @@ void WpiMotorControllerAdapter::setInverted(bool isInverted)
 bool WpiMotorControllerAdapter::getInverted() const
 {
     return mMotor->GetInverted();
+}
+
+IBasicMotorPtr adaptMotor(std::unique_ptr<frc::SpeedController> motor)
+{
+    return std::make_unique<skyline::WpiMotorControllerAdapter>
+        (std::move(motor));
 }
 
 }

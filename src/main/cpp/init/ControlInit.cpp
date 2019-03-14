@@ -76,7 +76,7 @@ OutputControlMap initializeOutputs()
     ControlPtr rightStickY = ControlBuilder()
         .joystick(&kDriveJoystick, IControl::Double, 5)
         .deadband(.15)
-        .scale(.33)
+        //.scale(.33)
         .build();
 
     ControlPtr modifier = ControlBuilder().joystick(&kDriveJoystick, IControl::Bool, 6).build();

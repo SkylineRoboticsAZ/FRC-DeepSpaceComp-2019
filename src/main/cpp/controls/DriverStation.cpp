@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <unordered_map>
+#include <frc/smartdashboard/SmartDashboard.h>
 
 
 namespace skyline
@@ -73,54 +74,80 @@ DriverStation::~DriverStation() = default;
 
 double DriverStation::readDouble(Input input) const
 {
+    double value;
+
     ControlPtr control = mImpl->assignedControl(input);
 
     if (control) {
         switch (control->type()) {
             case IControl::Type::Both:
             case IControl::Type::Double:
-                return control->readDouble();
+                value = control->readDouble();
+                break;
             case IControl::Type::Bool:
-                return control->readBool() ? 1.0 : 0.0;
+                value = control->readBool() ? 1.0 : 0.0;
+                break;
+        }
+    } else {
+        control = mImpl->assignedControl(Output::None);
+
+        if (control) {
+            value = control->readDouble();
+        } else {
+            std::cout << "Warning: DriverStation Output::None missing! \n"
+                    "Using default value of " << mDefaultDoubleValue 
+                    << " instead" << std::endl;
+
+            value = mDefaultDoubleValue;
         }
     }
 
-    control = mImpl->assignedControl(Output::None);
+    std::string inputString = "Double Input #";
+    inputString += std::to_string(static_cast<unsigned int>(input));
+    inputString += " ";
 
-    if (control)
-        return control->readDouble();
+    frc::SmartDashboard::PutNumber(inputString, value);
 
-    std::cout << "Warning: DriverStation Output::None missing! \n"
-                  "Using default value of " << mDefaultDoubleValue 
-                  << " instead" << std::endl;
-
-    return mDefaultDoubleValue;
+    return value;
 }
 
 bool DriverStation::readBoolean(Input input) const
 {
+    bool value;
+
     ControlPtr control = mImpl->assignedControl(input);
 
     if (control) {
         switch (control->type()) {
             case IControl::Type::Both:
             case IControl::Type::Bool:
-                return control->readBool();
+                value = control->readBool();
+                break;
             case IControl::Type::Double:
-                return control->readDouble() == 1.0;
+                value = control->readDouble() == 1.0;
+                break;
+        }
+    } else {
+        control = mImpl->assignedControl(Output::None);
+
+        if (control) {
+            value = control->readBool();
+        } else {
+            std::cout << "Warning: DriverStation Output::None missing! \n"
+                    "Using default value of " << mDefaultBoolValue 
+                    << " instead" << std::endl;
+
+            value = mDefaultBoolValue;
         }
     }
 
-    control = mImpl->assignedControl(Output::None);
+    std::string inputString = "Boolean Input #";
+    inputString += std::to_string(static_cast<unsigned int>(input));
+    inputString += " ";
 
-    if (control)
-        return control->readBool();
+    frc::SmartDashboard::PutBoolean(inputString, value);
 
-    std::cout << "Warning: DriverStation Output::None missing! \n"
-                  "Using default value of " << mDefaultBoolValue 
-                  << " instead" << std::endl;
-
-    return mDefaultBoolValue;
+    return value;
 }
 
 bool DriverStation::isInputBoolean(Input input) const

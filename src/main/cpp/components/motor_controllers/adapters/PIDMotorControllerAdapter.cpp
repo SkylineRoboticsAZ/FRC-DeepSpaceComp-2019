@@ -13,12 +13,12 @@ namespace skyline
 class PIDMotorControllerAdapter::RampedPIDOutput : public frc::PIDOutput
 {
 public:
-    RampedPIDOutput(frc::PIDOutput *output, double loopPeriod, 
-        double rampPeriod, double maxForwardOutput, 
-        double maxReverseOutput) : mOutput(output), 
-        mMaxRate(calcMaxRate(loopPeriod, rampPeriod)), 
-        mMaxForwardOutput(fabs(maxForwardOutput)),
-        mMaxReverseOutput(fabs(maxReverseOutput)) {}
+    RampedPIDOutput(frc::PIDOutput *output, 
+        const std::atomic<double> &maxForwardOutput, 
+        const std::atomic<double> &maxReverseOutput,
+        const std::atomic<double> &maxRate) : mOutput(output), 
+        mMaxForwardOutput(maxForwardOutput), 
+        mMaxReverseOutput(maxReverseOutput), mMaxRate(maxRate) {}
 
     void PIDWrite(double output) 
     {
@@ -34,41 +34,118 @@ public:
             mLastOutput = newOutput;
         }
 
-        if (newOutput >= 0) {
-            mOutput->PIDWrite(std::min(newOutput, mMaxForwardOutput));
-        } else {
-            mOutput->PIDWrite(std::max(newOutput, -mMaxReverseOutput));
-        }
-    }
-
-    double calcMaxRate(double loopPeriod, double rampPeriod) 
-    {
-        if (loopPeriod > 0 && rampPeriod > 0)
-            return loopPeriod / rampPeriod;
-
-        return -1;
+        if (newOutput >= 0)
+            mOutput->PIDWrite(std::min(newOutput, mMaxForwardOutput.load()));
+        else
+            mOutput->PIDWrite(std::max(newOutput, -mMaxReverseOutput.load()));
     }
 
 private:
     frc::PIDOutput *mOutput;
-    const double mMaxRate;
     double mLastOutput = 0.0;
-    const double mMaxForwardOutput, mMaxReverseOutput;
+    const std::atomic<double> &mMaxForwardOutput, &mMaxReverseOutput, &mMaxRate;
 };
 
 PIDMotorControllerAdapter::PIDMotorControllerAdapter(
     std::unique_ptr<IBasicMotorController> motor,
-    std::shared_ptr<IPIDSensor> sensor, const PIDConfig &config) : 
+    std::shared_ptr<IPIDSensor> sensor, double loopPeriod) : 
     mMotor(std::move(motor)), mRampedOutput(std::make_unique<RampedPIDOutput>(
-    mMotor.get(), config.loopPeriod, config.rampPeriod, 
-    config.maxForwardOutput, config.maxReverseOutput)), mSensor(sensor), 
-    mPIDController(std::make_unique<frc::PIDController>(config.kP, config.kI, 
-    config.kD, config.kF, *mSensor, *mRampedOutput, config.loopPeriod))
+    mMotor.get(), mMaxForwardOutput, mMaxReverseOutput, mMaxRate)), 
+    mSensor(sensor), mPIDController(std::make_unique<frc::PIDController>(
+        0, 0, 0, *mSensor, *mRampedOutput, loopPeriod)), 
+    mMaxForwardOutput(1), mMaxReverseOutput(1), mMaxRate(-1), mLoopPeriod(loopPeriod) 
 {
-    mPIDController->SetAbsoluteTolerance(config.allowableError);
+    mPIDController->SetAbsoluteTolerance(mAbsoluteTolerance);
 }
 
 PIDMotorControllerAdapter::~PIDMotorControllerAdapter() {}
+
+void PIDMotorControllerAdapter::setP(double p)
+{
+    mPIDController->SetP(p);
+}
+
+void PIDMotorControllerAdapter::setI(double i)
+{
+    mPIDController->SetI(i);
+}
+
+void PIDMotorControllerAdapter::setD(double d)
+{
+    mPIDController->SetD(d);
+}
+
+void PIDMotorControllerAdapter::setF(double f)
+{
+    mPIDController->SetF(f);
+}
+
+void PIDMotorControllerAdapter::setRampingPeriod(double period)
+{
+    if (mLoopPeriod > 0 && period > 0)
+        mMaxRate = mLoopPeriod / period;
+    else
+        mMaxRate = -1;
+}
+
+void PIDMotorControllerAdapter::setAcceptableError(double error)
+{
+    mAbsoluteTolerance = error;
+    mPIDController->SetAbsoluteTolerance(error);
+}
+
+void PIDMotorControllerAdapter::setPIDMaxForwardOutput(double percentPower)
+{
+    mMaxForwardOutput = fabs(percentPower);
+}
+
+void PIDMotorControllerAdapter::setPIDMaxReverseOutput(double percentPower)
+{
+    mMaxReverseOutput = fabs(percentPower);
+}
+
+double PIDMotorControllerAdapter::p() const
+{
+    return mPIDController->GetP();
+}
+
+double PIDMotorControllerAdapter::i() const
+{
+    return mPIDController->GetI();
+}
+
+double PIDMotorControllerAdapter::d() const
+{
+    return mPIDController->GetD();
+}
+
+double PIDMotorControllerAdapter::f() const
+{
+    return mPIDController->GetF();
+}
+
+double PIDMotorControllerAdapter::rampingPeriod() const
+{
+    if (mMaxRate != -1)
+        return mLoopPeriod / mMaxRate;
+
+    return 0;
+}
+
+double PIDMotorControllerAdapter::acceptableError() const
+{
+    return mAbsoluteTolerance;
+}
+
+double PIDMotorControllerAdapter::PIDMaxForwardOutput()
+{
+    return mMaxForwardOutput;
+}
+
+double PIDMotorControllerAdapter::PIDMaxReverseOutput()
+{
+    return mMaxReverseOutput;
+}
 
 IPIDMotorController::Mode PIDMotorControllerAdapter::mode() const
 {

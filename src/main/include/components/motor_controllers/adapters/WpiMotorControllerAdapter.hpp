@@ -31,6 +31,11 @@ public:
 
 private:
     std::unique_ptr<frc::SpeedController> mMotor;
+    double mMaxForwardOutput = 1;
+    double mMaxReverseOutput = 1;
 };
+
+typedef std::unique_ptr<IBasicMotorController> IBasicMotorPtr;
+IBasicMotorPtr adaptMotor(std::unique_ptr<frc::SpeedController> motor);
 
 }

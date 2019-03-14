@@ -26,4 +26,13 @@ private:
     std::vector<FollowerPtr> mFollowers;
 };
 
+using ctre::phoenix::motorcontrol::NeutralMode;
+using ctre::phoenix::motorcontrol::can::TalonSRX;
+
+typedef std::unique_ptr<TalonSRX> TalonSRXPtr;
+typedef std::unique_ptr<FollowableTalonSRX> FollowableTalonSRXPtr;
+
+FollowableTalonSRXPtr createTalonSRXGroup(const std::vector<int> &ports, 
+    bool isInverted, NeutralMode mode);
+
 }

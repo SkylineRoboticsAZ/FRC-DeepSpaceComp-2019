@@ -36,9 +36,14 @@ public:
     void setLeftPower(double percentPower) override;
     void setRightPower(double percentPower) override;
 
+    double velocityTarget() const;
+    double sensorVelocity() const;
+
 private:
     Motor mLeftMotor, mRightMotor;
     const double mMaxVelocity;
+    double mLeftTarget = 0, 
+           mRightTarget = 0;
 };
 
 }

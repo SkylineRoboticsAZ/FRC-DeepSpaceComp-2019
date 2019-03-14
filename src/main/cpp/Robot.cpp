@@ -18,6 +18,7 @@
 
 #include <frc/commands/Scheduler.h>
 #include <frc/buttons/Trigger.h>
+#include <frc/smartdashboard/SmartDashboard.h>
 
 #include <iostream>
 

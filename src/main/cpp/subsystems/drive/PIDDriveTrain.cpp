@@ -17,14 +17,24 @@ PIDDriveTrain::~PIDDriveTrain() {}
 
 void PIDDriveTrain::setLeftPower(double percentPower)
 {
-    mLeftMotor->set(IPIDMotorController::Mode::Velocity, 
-                    mMaxVelocity * percentPower);
+    mLeftTarget = mMaxVelocity * percentPower;
+    mLeftMotor->set(IPIDMotorController::Mode::Velocity, mLeftTarget);
 }
 
 void PIDDriveTrain::setRightPower(double percentPower)
 {
-    mRightMotor->set(IPIDMotorController::Mode::Velocity, 
-                     mMaxVelocity * percentPower);
+    mRightTarget = mMaxVelocity * percentPower;
+    mRightMotor->set(IPIDMotorController::Mode::Velocity, mRightTarget);
+}
+
+double PIDDriveTrain::velocityTarget() const
+{
+    return (mLeftTarget + mRightTarget) / 2;
+}
+
+double PIDDriveTrain::sensorVelocity() const
+{
+    return (mLeftMotor->sensorVelocity() + mRightMotor->sensorVelocity()) / 2;
 }
 
 }

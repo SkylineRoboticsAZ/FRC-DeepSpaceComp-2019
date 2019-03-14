@@ -25,5 +25,5 @@ public:
 
     void PIDWrite(double output) override { setPower(output); }
 };
-    
+
 }

@@ -18,8 +18,10 @@ namespace constants
     {
         const int driveJoystick = 0;
 
-        const std::vector<int> leftDriveMotors({4, 5});
-        const std::vector<int> rightDriveMotors({8, 9});
+        const std::vector<int> ballPivotMotors({7});
+        const std::vector<int> ballRollerMotors({});
+        const std::vector<int> leftDriveMotors({});//{4, 5});
+        const std::vector<int> rightDriveMotors({});//{8, 9});
         const std::vector<int> elevatorMotors({});
     }
 }
