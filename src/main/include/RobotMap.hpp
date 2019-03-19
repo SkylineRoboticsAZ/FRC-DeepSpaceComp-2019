@@ -17,12 +17,13 @@ namespace constants
     namespace ports
     {
         const int driveJoystick = 0;
+        const int auxJoystick = 1;
 
-        const std::vector<int> ballPivotMotors({7});
-        const std::vector<int> ballRollerMotors({});
-        const std::vector<int> leftDriveMotors({});//{4, 5});
-        const std::vector<int> rightDriveMotors({});//{8, 9});
-        const std::vector<int> elevatorMotors({});
+        const std::vector<int> ballPivotMotors({4});
+        const std::vector<int> ballRollerMotors({5});
+        const std::vector<int> leftDriveMotors({7, 8, 9});//{4, 5});
+        const std::vector<int> rightDriveMotors({10, 11, 12});//{8, 9});
+        const std::vector<int> elevatorMotors({2, 3});
     }
 }
 }

@@ -3,7 +3,6 @@
 
 namespace skyline
 {
-
 namespace controls
 {
 
@@ -18,21 +17,25 @@ namespace controls
  */
 enum class Output : unsigned int
 {
+    // Controller 1
     None,
     leftThrottle,
     rightThrottle,
     netThrottle,
     leftStickX,
-    rightStickY,
-    aButton,
-    xButton,
-    yButton,
-    bButton,
-    rbXButton,
-    rbYButton,
-    rbBButton
+
+    // Controller 2
+    sLeftStickY,
+    sRightStickY,
+    sNetTriggers,
+    sAButton,
+    sXButton,
+    sYButton,
+    sBButton,
+    sRbXButton,
+    sRbYButton,
+    sRbBButton
 };
 
 }
-
 }

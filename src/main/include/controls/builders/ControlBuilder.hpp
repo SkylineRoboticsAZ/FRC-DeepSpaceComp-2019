@@ -28,6 +28,7 @@ public:
     ControlBuilder &invert();
     ControlBuilder &scale(double scaleFactor);
     ControlBuilder &raise(double power);
+    ControlBuilder &round();
 
     IControl::ControlPtr build();
 

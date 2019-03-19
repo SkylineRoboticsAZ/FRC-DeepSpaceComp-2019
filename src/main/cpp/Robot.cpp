@@ -20,6 +20,9 @@
 #include <frc/buttons/Trigger.h>
 #include <frc/smartdashboard/SmartDashboard.h>
 
+#include <cameraserver/CameraServer.h>
+
+
 #include <iostream>
 
 
@@ -47,6 +50,9 @@ void Robot::RobotInit()
     kSubsystems = subsystems::initSubsystems();
     triggers::initTriggers();
     controls::initControlBindings();
+
+    frc::CameraServer::GetInstance()->StartAutomaticCapture(0).SetFPS(15);
+    frc::CameraServer::GetInstance()->StartAutomaticCapture(1).SetFPS(15);
 }
 
 void Robot::RobotPeriodic()

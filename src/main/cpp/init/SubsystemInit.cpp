@@ -40,26 +40,31 @@ SubsystemPtr initDriveTrain()
     using constants::ports::rightDriveMotors;
 
     if (leftDriveMotors.size() > 0 && rightDriveMotors.size() > 0) {
-        TalonSRXPtr leftMotor = createTalonSRXGroup(leftDriveMotors, false, NeutralMode::Coast);
+        IBasicMotorPtr leftMotor = adaptMotor(
+            createTalonSRXGroup(leftDriveMotors, false, NeutralMode::Coast));
         IBasicMotorPtr rightMotor = adaptMotor(
             createTalonSRXGroup(rightDriveMotors, true, NeutralMode::Coast));
 
-        TalonSRXConfiguration config;
-        using ctre::phoenix::motorcontrol::VelocityMeasPeriod;
-        config.velocityMeasurementPeriod = VelocityMeasPeriod::Period_20Ms;
-        config.velocityMeasurementWindow = 4;
+        std::shared_ptr<frc::Encoder> leftEncoder =
+            std::make_shared<frc::Encoder>(0, 1, true, 
+            frc::Encoder::EncodingType::k1X);
 
-        leftMotor->ConfigAllSettings(config);
-        leftMotor->SelectProfileSlot(0, 0);
-        leftMotor->SetSensorPhase(true);
+        leftEncoder->SetDistancePerPulse(1.0/360);
 
-        IPIDMotorPtr leftPidMotor = adaptMotor(std::move(leftMotor));
-        leftPidMotor->setAcceptableError(10);
-        leftPidMotor->setF(.000526315789474);
+        std::shared_ptr<IPIDSensor> leftPidEncoder = 
+            std::make_shared<PIDEncoder>(leftEncoder);
 
-        std::shared_ptr<frc::Encoder> rightEncoder = 
+        IPIDMotorPtr leftPidMotor = 
+            std::make_unique<PIDMotorControllerAdapter>(
+                std::move(leftMotor), leftPidEncoder);
+        leftPidMotor->setAcceptableError(.1);
+        leftPidMotor->setF(0.349065850399);
+
+        std::shared_ptr<frc::Encoder> rightEncoder =
             std::make_shared<frc::Encoder>(2, 3, false, 
             frc::Encoder::EncodingType::k1X);
+
+        rightEncoder->SetDistancePerPulse(1.0/360);
 
         std::shared_ptr<IPIDSensor> rightPidEncoder = 
             std::make_shared<PIDEncoder>(rightEncoder);
@@ -67,12 +72,12 @@ SubsystemPtr initDriveTrain()
         IPIDMotorPtr rightPidMotor = 
             std::make_unique<PIDMotorControllerAdapter>(
                 std::move(rightMotor), rightPidEncoder);
-        rightPidMotor->setAcceptableError(10);
-        rightPidMotor->setF(.000526315789474);
+        rightPidMotor->setAcceptableError(.1);
+        rightPidMotor->setF(.349065850399);
 
         std::unique_ptr<PIDDriveTrain> driveTrain = 
             std::make_unique<PIDDriveTrain>(
-                std::move(leftPidMotor), std::move(rightPidMotor), 1900);
+                std::move(leftPidMotor), std::move(rightPidMotor), 2.846);
 
         CommandGroupPtr group = 
             std::make_unique<commands::CommandGroup>("DriveTrainCommandGroup");
@@ -102,31 +107,29 @@ SubsystemPtr initElevator()
         config.velocityMeasurementPeriod = VelocityMeasPeriod::Period_20Ms;
         config.velocityMeasurementWindow = 4;
         config.clearPositionOnLimitF = true;
+        config.peakOutputForward = .5;
+        config.peakOutputReverse = -.5;
 
         motor->ConfigAllSettings(config);
         motor->SelectProfileSlot(0, 0);
         motor->SetSensorPhase(true);
 
-        std::shared_ptr<IPIDSensor> pidEncoder = 
-            std::make_shared<PIDEncoder>(2, 3, true, 
-                frc::Encoder::EncodingType::k1X);
+        IPIDMotorPtr pidMotor = adaptMotor(std::move(motor), 360);
 
-        IPIDMotorPtr pidMotor = std::make_unique<PIDMotorControllerAdapter>(
-            adaptMotor(std::move(motor), 360), pidEncoder);
-
-        pidMotor->setAcceptableError(10);
-        pidMotor->setPIDMaxForwardOutput(.3);
-        pidMotor->setPIDMaxReverseOutput(.3);
+        pidMotor->setAcceptableError(.1);
+        pidMotor->setPIDMaxForwardOutput(.5);
+        pidMotor->setPIDMaxReverseOutput(.5);
         pidMotor->setP(1);
+        pidMotor->setD(50);
 
         Elevator::Positions positions;
         positions[Elevator::Position::Bottom] = 0;
-        positions[Elevator::Position::DiskBottom] = 500;
-        positions[Elevator::Position::BallBottom] = 1000;
-        positions[Elevator::Position::DiskMiddle] = 1500;
-        positions[Elevator::Position::BallMiddle] = 2000;
-        positions[Elevator::Position::DiskTop] = 2500;
-        positions[Elevator::Position::BallTop] = 3000;
+        positions[Elevator::Position::DiskBottom] = -8.47778;
+        positions[Elevator::Position::BallBottom] = -1.71111;
+        positions[Elevator::Position::DiskMiddle] = -28.2417;
+        positions[Elevator::Position::BallMiddle] = -20.2944;
+        positions[Elevator::Position::DiskTop] = -44.0611;
+        positions[Elevator::Position::BallTop] = -40.3917;
 
         std::unique_ptr<Elevator> elevator = 
             std::make_unique<Elevator>(std::move(pidMotor), positions);
@@ -150,18 +153,18 @@ SubsystemPtr initBallPickupPivot()
     using constants::ports::ballPivotMotors;
 
     FollowableTalonSRXPtr rollerMotor = 
-        createTalonSRXGroup(ballPivotMotors, false, NeutralMode::Brake);
+        createTalonSRXGroup(ballPivotMotors, true, NeutralMode::Brake);
 
     if (rollerMotor) {
-        rollerMotor->ConfigPeakOutputForward(1);
-        rollerMotor->ConfigPeakOutputReverse(-1);
+        rollerMotor->ConfigPeakOutputForward(.3);
+        rollerMotor->ConfigPeakOutputReverse(-.3);
 
         std::unique_ptr<subsystems::SimpleActuator> actuator = 
             std::make_unique<subsystems::SimpleActuator>
             (adaptMotor(std::move(rollerMotor)), "BallPickupPivot");
 
         commands::ActuateJoystick::Config actuatorConfig;
-        actuatorConfig.input = Input::elevator;
+        actuatorConfig.input = Input::ballPickupPivot;
 
         actuator->SetDefaultCommand(
             std::make_unique<commands::ActuateJoystick>(
@@ -189,7 +192,7 @@ SubsystemPtr initBallPickupRollers()
             (adaptMotor(std::move(rollerMotor)), "BallPickupRollers");
 
         commands::ActuateJoystick::Config actuatorConfig;
-        actuatorConfig.input = Input::elevator;
+        actuatorConfig.input = Input::ballPickupRollers;
 
         actuator->SetDefaultCommand(
             std::make_unique<commands::ActuateJoystick>(

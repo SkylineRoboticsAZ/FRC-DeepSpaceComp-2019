@@ -7,6 +7,7 @@
 #include "controls/modifiers/logic/InvertedControl.hpp"
 
 #include "controls/modifiers/math/ScaledControl.hpp"
+#include "controls/modifiers/math/RoundedControl.hpp"
 #include "controls/modifiers/math/PolarizedExponentialControl.hpp"
 
 #include <memory>
@@ -59,6 +60,13 @@ ControlBuilder &ControlBuilder::raise(double power)
 {
     if (mControl)
         mControl = std::make_shared<PolarizedExponentialControl>(mControl, power);
+    return *this;
+}
+
+ControlBuilder &ControlBuilder::round()
+{
+    if (mControl)
+        mControl = std::make_unique<RoundedControl>(mControl);
     return *this;
 }
 

@@ -129,22 +129,22 @@ void CtreMotorControllerAdapter::set(Mode mode, double value)
             setPower(value);
             break;
         case Mode::Position:
-            mMotor->Set(ControlMode::Position, value);
+            mMotor->Set(ControlMode::Position, value * mSensorScaleFactor);
             break;
         case Mode::Velocity:
-            mMotor->Set(ControlMode::Velocity, value);
+            mMotor->Set(ControlMode::Velocity, value * mSensorScaleFactor);
             break;
     }
 }
 
 double CtreMotorControllerAdapter::sensorPosition() const
 {
-    return mMotor->GetSelectedSensorPosition();
+    return mMotor->GetSelectedSensorPosition() / mSensorScaleFactor;
 }
 
 double CtreMotorControllerAdapter::sensorVelocity() const
 {
-    return mMotor->GetSelectedSensorVelocity();
+    return mMotor->GetSelectedSensorVelocity() / mSensorScaleFactor;
 }
 
 void CtreMotorControllerAdapter::reset()

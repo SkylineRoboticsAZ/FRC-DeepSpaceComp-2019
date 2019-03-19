@@ -3,7 +3,6 @@
 
 namespace skyline
 {
-
 namespace controls
 {
 
@@ -29,9 +28,10 @@ enum class Input : unsigned int
     elevatorDiskMiddle,
     elevatorBallMiddle,
     elevatorDiskTop,
-    elevatorBallTop
+    elevatorBallTop,
+    ballPickupPivot,
+    ballPickupRollers
 };
 
 }
-
 }

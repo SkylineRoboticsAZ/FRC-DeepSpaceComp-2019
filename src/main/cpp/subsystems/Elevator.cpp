@@ -27,10 +27,8 @@ bool Elevator::isHoldPositionEnabled() const
 void Elevator::setTargetPosition(Position position)
 {
     auto iterator = mPositions.find(position);
-    if (iterator != mPositions.end()) {
+    if (iterator != mPositions.end())
         setTargetPosition(iterator->second);
-        std::cout << "Setting Target Position: " << iterator->second << std::endl;
-    }       
 }
 
 void Elevator::setPower(double power)
@@ -50,6 +48,7 @@ void Elevator::setTargetPosition(double position)
     mMotor->reset();
     mMotor->set(IPIDMotorController::Mode::Position, position);
     mIsHoldingPosition = true;
+    std::cout << "Setting Target Position: " << position << std::endl;
 }
 
 }
