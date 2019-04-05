@@ -30,7 +30,7 @@ namespace triggers
 class JoystickTrigger : public TriggerBase
 {
 public:
-    typedef std::unique_ptr<frc::Command> CommandPtr;
+    typedef std::shared_ptr<frc::Command> CommandPtr;
 
     JoystickTrigger(Input input);
     ~JoystickTrigger();

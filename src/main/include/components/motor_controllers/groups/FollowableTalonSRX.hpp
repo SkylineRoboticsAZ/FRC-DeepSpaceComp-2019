@@ -33,6 +33,6 @@ typedef std::unique_ptr<TalonSRX> TalonSRXPtr;
 typedef std::unique_ptr<FollowableTalonSRX> FollowableTalonSRXPtr;
 
 FollowableTalonSRXPtr createTalonSRXGroup(const std::vector<int> &ports, 
-    bool isInverted, NeutralMode mode);
+    bool isInverted, NeutralMode mode, double openLoopRamp = 0);
 
 }

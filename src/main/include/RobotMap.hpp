@@ -19,11 +19,17 @@ namespace constants
         const int driveJoystick = 0;
         const int auxJoystick = 1;
 
-        const std::vector<int> ballPivotMotors({4});
+        const std::vector<int> ballPivotMotors({13});
         const std::vector<int> ballRollerMotors({5});
-        const std::vector<int> leftDriveMotors({7, 8, 9});//{4, 5});
-        const std::vector<int> rightDriveMotors({10, 11, 12});//{8, 9});
+        const std::vector<int> leftDriveMotors({7, 8, 9});
+        const std::vector<int> rightDriveMotors({10, 11, 12});
         const std::vector<int> elevatorMotors({2, 3});
+        const std::vector<int> hatchHookMotors({4});
+    }
+
+    namespace ballPickupPivot
+    {
+        const double kickoutPosition = .1;
     }
 }
 }

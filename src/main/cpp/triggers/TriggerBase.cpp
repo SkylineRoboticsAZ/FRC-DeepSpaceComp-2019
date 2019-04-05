@@ -14,31 +14,31 @@ TriggerBase::~TriggerBase() {}
 void TriggerBase::WhenActive(CommandPtr command)
 {
     Trigger::WhenActive(command.get());
-    mWhenActiveCommands.push_back(std::move(command));
+    mWhenActiveCommands.push_back(command);
 }
 
 void TriggerBase::WhileActive(CommandPtr command)
 {
     Trigger::WhileActive(command.get());
-    mWhileActiveCommands.push_back(std::move(command));
+    mWhileActiveCommands.push_back(command);
 }
 
 void TriggerBase::WhenInactive(CommandPtr command)
 {
     Trigger::WhenInactive(command.get());
-    mWhenInactiveCommands.push_back(std::move(command));
+    mWhenInactiveCommands.push_back(command);
 }
 
 void TriggerBase::CancelWhenActive(CommandPtr command)
 {
     Trigger::CancelWhenActive(command.get());
-    mCancelWhenActiveCommands.push_back(std::move(command));
+    mCancelWhenActiveCommands.push_back(command);
 }
 
 void TriggerBase::ToggleWhenActive(CommandPtr command)
 {
     Trigger::ToggleWhenActive(command.get());
-    mToggleWhenActiveCommands.push_back(std::move(command));
+    mToggleWhenActiveCommands.push_back(command);
 }
 
 }

@@ -11,7 +11,7 @@ namespace commands
 class CommandGroup : public frc::CommandGroup
 {
 public:
-    typedef std::unique_ptr<frc::Command> CommandPtr;
+    typedef std::shared_ptr<frc::Command> CommandPtr;
     typedef std::vector<CommandPtr> CommandPtrList;
 
     CommandGroup(const wpi::Twine &name);

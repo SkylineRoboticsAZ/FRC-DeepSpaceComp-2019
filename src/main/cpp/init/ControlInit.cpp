@@ -48,13 +48,17 @@ OutputControlMap initializeOutputs()
 {
     OutputControlMap controlMap;
 
-    // Constants
+    // Virtual
     ControlPtr none = ControlBuilder()
         .constant(0, false)
         .build();
 
+    ControlPtr hatchHookEnabled = ControlBuilder()
+        .constant(1, false)
+        .build();
+
     // Controller 1
-    ControlPtr leftThrottle = ControlBuilder()
+    /*ControlPtr leftThrottle = ControlBuilder()
         .joystick(&kDriveJoystick, IControl::Double, 2)
         .deadband(.02)
         .invert()
@@ -63,11 +67,13 @@ OutputControlMap initializeOutputs()
     ControlPtr rightThrottle = ControlBuilder()
         .joystick(&kDriveJoystick, IControl::Double, 3)
         .deadband(.02)
-        .build();
+        .build();*/
 
-    ControlPtr netThrottle = ControlBuilder(add(leftThrottle, rightThrottle))
-        .scale(.8)
+    ControlPtr netThrottle = ControlBuilder()
+        .joystick(&kDriveJoystick, IControl::Double, 5)
+        .deadband(.1)
         .raise(2)
+        .invert()
         .build();
 
     /*ControlPtr netThrottle = ControlBuilder(
@@ -83,16 +89,16 @@ OutputControlMap initializeOutputs()
 
     ControlPtr leftStickX = ControlBuilder()
         .joystick(&kDriveJoystick, IControl::Double, 0)
-        .deadband(.15)
-        .scale(.5)
-        .raise(2)
+        .deadband(.1)
+        .scale(.7)
         .build();
 
     // Controller 2
     ControlPtr sLeftStickY = ControlBuilder()
         .joystick(&kAuxJoystick, IControl::Double, 1)
         .deadband(.15)
-        .scale(.5)
+        .scale(.6)
+        .invert()
         .build();
 
     ControlPtr sRightStickY = ControlBuilder()
@@ -131,12 +137,13 @@ OutputControlMap initializeOutputs()
 
     ControlPtr netTriggers = add(leftTriggerButton, rightTriggerButton);
 
-    // Constants
-    controlMap[Output::None] = none;
+    ControlPtr hatchHookTrigger = ControlBuilder()
+        .joystick(&kAuxJoystick, IControl::Bool, 5)
+        .build();
 
     // Controller 1
-    controlMap[Output::leftThrottle] = leftThrottle;
-    controlMap[Output::rightThrottle] = rightThrottle;
+    /*controlMap[Output::leftThrottle] = leftThrottle;
+    controlMap[Output::rightThrottle] = rightThrottle;*/
     controlMap[Output::netThrottle] = netThrottle;
     controlMap[Output::leftStickX] = leftStickX;
 
@@ -151,6 +158,11 @@ OutputControlMap initializeOutputs()
     controlMap[Output::sRbYButton] = modifiedYButton;
     controlMap[Output::sLeftStickY] = sLeftStickY;
     controlMap[Output::sNetTriggers] = netTriggers;
+    controlMap[Output::sLbButton] = hatchHookTrigger;
+
+    // Virtual
+    controlMap[Output::None] = none;
+    controlMap[Output::hatchHookEnabled] = hatchHookEnabled;
     
     return controlMap;
 }
@@ -178,6 +190,10 @@ void initControlBindings()
     driverStation.assignOutputToInput(Output::sBButton, Input::elevatorBallTop);
     driverStation.assignOutputToInput(Output::sLeftStickY, Input::ballPickupPivot);
     driverStation.assignOutputToInput(Output::sNetTriggers, Input::ballPickupRollers);
+    driverStation.assignOutputToInput(Output::sLbButton, Input::hatchHookTrigger);
+
+    // Virtual
+    driverStation.assignOutputToInput(Output::hatchHookEnabled, Input::hatchHook);
 }
 
 }

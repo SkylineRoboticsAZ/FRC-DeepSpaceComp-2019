@@ -23,6 +23,7 @@ public:
 
     double getDisplacement() const override;
     double getRate() const override;
+    void reset() override;
 
 private:
     std::shared_ptr<frc::Encoder> mEncoder;

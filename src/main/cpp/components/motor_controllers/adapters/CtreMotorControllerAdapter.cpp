@@ -2,6 +2,8 @@
 
 #include <ctre/phoenix/motorcontrol/IMotorController.h>
 
+#include <cmath>
+
 
 namespace skyline
 {
@@ -51,6 +53,33 @@ void CtreMotorControllerAdapter::setPIDMaxReverseOutput(double percentPower)
     setPIDMaxForwardOutput(percentPower);
 }
 
+bool CtreMotorControllerAdapter::isAtTarget() const
+{
+    double difference;
+
+    switch (mode()) {
+        case Mode::PercentOutput:
+            return true;
+        case Mode::Position:
+            difference = fabs(mMotor->GetClosedLoopTarget() - 
+            mMotor->GetSelectedSensorPosition());
+            break;
+        case Mode::Velocity:
+            difference = fabs(mMotor->GetClosedLoopTarget() - 
+            mMotor->GetSelectedSensorVelocity());
+            break;
+    }
+
+    using ctre::phoenix::ParamEnum;
+    return difference <= mMotor->ConfigGetParameter(
+        ParamEnum::eProfileParamSlot_AllowableErr, 0, mTimeoutMs);
+}
+
+void CtreMotorControllerAdapter::zeroSensorPosition()
+{
+    mMotor->SetSelectedSensorPosition(0, 0, mTimeoutMs);
+}
+
 double CtreMotorControllerAdapter::p() const
 {
     using ctre::phoenix::ParamEnum;
@@ -96,14 +125,14 @@ double CtreMotorControllerAdapter::acceptableError() const
     return nativeError / mSensorScaleFactor;
 }
 
-double CtreMotorControllerAdapter::PIDMaxForwardOutput()
+double CtreMotorControllerAdapter::PIDMaxForwardOutput() const
 {
     using ctre::phoenix::ParamEnum;
     return mMotor->ConfigGetParameter(
         ParamEnum::eProfileParamSlot_PeakOutput, 0, mTimeoutMs);
 }
 
-double CtreMotorControllerAdapter::PIDMaxReverseOutput()
+double CtreMotorControllerAdapter::PIDMaxReverseOutput() const
 {
     return PIDMaxForwardOutput();
 }

@@ -1,12 +1,16 @@
 #include "init/TriggerInit.hpp"
 
 #include "Robot.hpp"
+#include "RobotMap.hpp"
 #include "subsystems/Subsystems.hpp"
 #include "subsystems/Elevator.hpp"
+#include "subsystems/actuators/PIDActuator.hpp"
+#include "subsystems/actuators/SimpleActuator.hpp"
 
+#include "commands/auto/MoveActuatorPastPosition.hpp"
 #include "commands/SetElevatorPosition.hpp"
 #include "commands/ActuateJoystick.hpp"
-#include "commands/SetElevatorPosition.hpp"
+#include "commands/CommandGroup.hpp"
 
 #include "controls/Inputs.hpp"
 
@@ -37,41 +41,93 @@ void initTriggers()
 
     using subsystems::Elevator;
     using subsystems::Subsystem;
+    using subsystems::PIDActuator;
+    using subsystems::SimpleActuator;
     using commands::SetElevatorPosition;
+    using commands::MoveActuatorPastPosition;
+    using commands::ActuateJoystick;
+    using commands::CommandGroup;
 
     Elevator *elevator = 
         static_cast<Elevator*>(Robot::getSubsystem(Subsystem::Elevator));
 
+    PIDActuator *ballPickupPivot = 
+        static_cast<PIDActuator*>(Robot::getSubsystem(Subsystem::BallPickupPivot));
+
+    SimpleActuator *hatchHook =
+        static_cast<SimpleActuator*>(Robot::getSubsystem(Subsystem::HatchHook));
+
     if (elevator)
     {
-        BoolTriggerPtr elevatorBottom = std::make_unique<BoolTrigger>(Input::elevatorBottom);
-        elevatorBottom->WhenActive(std::make_unique<SetElevatorPosition>(elevator, Elevator::Position::Bottom));
+        typedef Elevator::Position Position;
+        const Position positions[] = {Position::Bottom, Position::DiskBottom, 
+            Position::BallBottom, Position::DiskMiddle, Position::BallMiddle, 
+            Position::DiskTop, Position::BallTop};
 
-        BoolTriggerPtr elevatorDiskBottom = std::make_unique<BoolTrigger>(Input::elevatorDiskBottom);
-        elevatorDiskBottom->WhenActive(std::make_unique<SetElevatorPosition>(elevator, Elevator::Position::DiskBottom));
+        std::vector<std::shared_ptr<CommandGroup>> commands;
+        for (int i = 0; i < 7; i++)
+            commands.push_back(std::make_shared<CommandGroup>("ElevatorCommandGroup"));
 
-        BoolTriggerPtr elevatorBallBottom = std::make_unique<BoolTrigger>(Input::elevatorBallBottom);
-        elevatorBallBottom->WhenActive(std::make_unique<SetElevatorPosition>(elevator, Elevator::Position::BallBottom));
+        std::shared_ptr<CommandGroup> elevatorManualControlCommand =
+            std::make_shared<CommandGroup>("ElevatorManualControl");
 
-        BoolTriggerPtr elevatorDiskMiddle = std::make_unique<BoolTrigger>(Input::elevatorDiskMiddle);
-        elevatorDiskMiddle->WhenActive(std::make_unique<SetElevatorPosition>(elevator, Elevator::Position::DiskMiddle));
+        // If the ballPickupPivot mechanism is present insert code for
+        // kicking out the front arm before the elevator moves
+        if (ballPickupPivot)
+        {
+            typedef MoveActuatorPastPosition::Mode Mode;
 
-        BoolTriggerPtr elevatorBallMiddle = std::make_unique<BoolTrigger>(Input::elevatorBallMiddle);
-        elevatorBallMiddle->WhenActive(std::make_unique<SetElevatorPosition>(elevator, Elevator::Position::BallMiddle));
+            for (std::shared_ptr<CommandGroup> &group : commands)
+                group->AddSequential(std::make_shared<MoveActuatorPastPosition>
+                (ballPickupPivot, constants::ballPickupPivot::kickoutPosition,
+                 Mode::GreaterThanTarget));
 
-        BoolTriggerPtr elevatorDiskTop = std::make_unique<BoolTrigger>(Input::elevatorDiskTop);
-        elevatorDiskTop->WhenActive(std::make_unique<SetElevatorPosition>(elevator, Elevator::Position::DiskTop));
-        
-        BoolTriggerPtr elevatorBallTop = std::make_unique<BoolTrigger>(Input::elevatorBallTop);
-        elevatorBallTop->WhenActive(std::make_unique<SetElevatorPosition>(elevator, Elevator::Position::BallTop));
+            elevatorManualControlCommand->AddSequential(std::make_shared<MoveActuatorPastPosition>
+                (ballPickupPivot, constants::ballPickupPivot::kickoutPosition,
+                 Mode::GreaterThanTarget));
+        }
 
-        kTriggers.push_back(std::move(elevatorBottom));
-        kTriggers.push_back(std::move(elevatorDiskBottom));
-        kTriggers.push_back(std::move(elevatorBallBottom));
-        kTriggers.push_back(std::move(elevatorDiskMiddle));
-        kTriggers.push_back(std::move(elevatorBallMiddle));
-        kTriggers.push_back(std::move(elevatorDiskTop));
-        kTriggers.push_back(std::move(elevatorBallTop));
+        for (int i = 0; i < 7; i++)
+            commands[i]->AddSequential(
+                std::make_shared<SetElevatorPosition>(elevator, positions[i]));
+
+        const Input inputs[] = {Input::elevatorBottom, Input::elevatorDiskBottom, 
+            Input::elevatorBallBottom, Input::elevatorDiskMiddle, 
+            Input::elevatorBallMiddle, Input::elevatorDiskTop, 
+            Input::elevatorBallTop};
+
+        std::vector<BoolTriggerPtr> elevatorTriggers;
+
+        for (int i = 0; i < 7; i++) {
+            BoolTriggerPtr trigger = std::make_unique<BoolTrigger>(inputs[i]);
+            trigger->WhenActive(commands[i]);
+            kTriggers.push_back(std::move(trigger));
+        }
+
+        ActuateJoystick::Config elevatorActuateJoystickConfig;
+        elevatorActuateJoystickConfig.input = Input::elevator;
+
+        elevatorManualControlCommand->AddSequential(
+            std::make_shared<ActuateJoystick>(elevator, 
+            elevatorActuateJoystickConfig));
+
+        JoystickTriggerPtr elevatorManualControlTrigger = 
+            std::make_unique<JoystickTrigger>(Input::elevator);
+
+        elevatorManualControlTrigger->WhileActive(elevatorManualControlCommand);
+
+        kTriggers.push_back(std::move(elevatorManualControlTrigger));
+    }
+
+    if (hatchHook)
+    {
+        ActuateJoystick::Config actuateJoystickConfig;
+        actuateJoystickConfig.input = Input::hatchHook;
+
+        BoolTriggerPtr trigger = std::make_unique<BoolTrigger>(Input::hatchHookTrigger);
+        trigger->ToggleWhenActive(std::make_shared<ActuateJoystick>(hatchHook, actuateJoystickConfig));
+
+        kTriggers.push_back(std::move(trigger));
     }
 
     kTriggers.shrink_to_fit();

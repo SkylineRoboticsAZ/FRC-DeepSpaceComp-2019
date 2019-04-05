@@ -30,7 +30,7 @@ namespace triggers
 class BoolTrigger : public TriggerBase
 {
 public:
-    typedef std::unique_ptr<frc::Command> CommandPtr;
+    typedef std::shared_ptr<frc::Command> CommandPtr;
 
     BoolTrigger(Input input, bool targetValue = true);
     ~BoolTrigger();

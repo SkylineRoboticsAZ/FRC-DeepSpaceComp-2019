@@ -36,14 +36,17 @@ public:
     virtual void setPIDMaxForwardOutput(double percentPower) = 0;
     virtual void setPIDMaxReverseOutput(double percentPower) = 0;
 
+    virtual void zeroSensorPosition() = 0;
+
     virtual double p() const = 0;
     virtual double i() const = 0;
     virtual double d() const = 0;
     virtual double f() const = 0;
     virtual double rampingPeriod() const = 0;
     virtual double acceptableError() const = 0;
-    virtual double PIDMaxForwardOutput() = 0;
-    virtual double PIDMaxReverseOutput() = 0;
+    virtual double PIDMaxForwardOutput() const = 0;
+    virtual double PIDMaxReverseOutput() const = 0;
+    virtual bool isAtTarget() const = 0;
 
     virtual Mode mode() const = 0;
     virtual void set(Mode mode, double value) = 0;  

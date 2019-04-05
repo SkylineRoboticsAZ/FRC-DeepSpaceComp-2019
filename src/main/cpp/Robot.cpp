@@ -13,6 +13,7 @@
 
 #include "subsystems/Subsystems.hpp"
 #include "subsystems/SubsystemBase.hpp"
+#include "subsystems/actuators/PIDActuator.hpp"
 
 #include "commands/Commands.hpp"
 
@@ -70,6 +71,13 @@ void Robot::DisabledPeriodic()
 
 void Robot::AutonomousInit()
 {
+    // Zero the position of the ball pickup mechanism when auto starts
+    subsystems::PIDActuator *ballPickupPivot = 
+        static_cast<subsystems::PIDActuator*>
+        (Robot::getSubsystem(subsystems::Subsystem::BallPickupPivot));
+
+    if (ballPickupPivot)
+        ballPickupPivot->zeroPosition();
 }
 
 void Robot::AutonomousPeriodic()

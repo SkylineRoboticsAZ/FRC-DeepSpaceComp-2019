@@ -37,4 +37,9 @@ double PIDEncoder::getRate() const
     return mEncoder->GetRate();
 }
 
+void PIDEncoder::reset()
+{
+    mEncoder->Reset();
+}
+
 }

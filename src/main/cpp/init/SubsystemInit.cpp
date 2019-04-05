@@ -31,8 +31,8 @@ using ctre::phoenix::motorcontrol::can::SlotConfiguration;
 using ctre::phoenix::motorcontrol::can::TalonSRXConfiguration;
 using ctre::phoenix::motorcontrol::IMotorController;
 
-typedef std::unique_ptr<frc::Command> CommandPtr;
-typedef std::unique_ptr<commands::CommandGroup> CommandGroupPtr;
+typedef std::shared_ptr<frc::Command> CommandPtr;
+typedef std::shared_ptr<commands::CommandGroup> CommandGroupPtr;
 
 SubsystemPtr initDriveTrain()
 {
@@ -40,10 +40,14 @@ SubsystemPtr initDriveTrain()
     using constants::ports::rightDriveMotors;
 
     if (leftDriveMotors.size() > 0 && rightDriveMotors.size() > 0) {
-        IBasicMotorPtr leftMotor = adaptMotor(
-            createTalonSRXGroup(leftDriveMotors, false, NeutralMode::Coast));
-        IBasicMotorPtr rightMotor = adaptMotor(
-            createTalonSRXGroup(rightDriveMotors, true, NeutralMode::Coast));
+        FollowableTalonSRXPtr leftTalon = 
+            createTalonSRXGroup(leftDriveMotors, false, NeutralMode::Coast, .2);
+
+        FollowableTalonSRXPtr rightTalon =
+            createTalonSRXGroup(rightDriveMotors, true, NeutralMode::Coast, .2);
+
+        IBasicMotorPtr leftMotor = adaptMotor(std::move(leftTalon));
+        IBasicMotorPtr rightMotor = adaptMotor(std::move(rightTalon));
 
         std::shared_ptr<frc::Encoder> leftEncoder =
             std::make_shared<frc::Encoder>(0, 1, true, 
@@ -80,14 +84,14 @@ SubsystemPtr initDriveTrain()
                 std::move(leftPidMotor), std::move(rightPidMotor), 2.846);
 
         CommandGroupPtr group = 
-            std::make_unique<commands::CommandGroup>("DriveTrainCommandGroup");
+            std::make_shared<commands::CommandGroup>("DriveTrainCommandGroup");
 
-        group->AddParallel(std::make_unique<commands::DriveXBox>(
+        group->AddParallel(std::make_shared<commands::DriveXBox>(
             driveTrain.get(), commands::DriveXBox::Config()));
-        group->AddParallel(std::make_unique<commands::PIDDriveSpeedometer>(
+        group->AddParallel(std::make_shared<commands::PIDDriveSpeedometer>(
             driveTrain.get()));
 
-        driveTrain->SetDefaultCommand(std::move(group));
+        driveTrain->SetDefaultCommand(group);
 
         return std::move(driveTrain);
     }
@@ -136,12 +140,6 @@ SubsystemPtr initElevator()
 
         elevator->setHoldPositionEnabled(true);
 
-        commands::ActuateJoystick::Config actuatorConfig;
-        actuatorConfig.input = Input::elevator;
-
-        elevator->SetDefaultCommand(
-            std::make_unique<commands::ActuateJoystick>(elevator.get(), actuatorConfig));
-
         return std::move(elevator);
     }
 
@@ -152,22 +150,39 @@ SubsystemPtr initBallPickupPivot()
 {
     using constants::ports::ballPivotMotors;
 
-    FollowableTalonSRXPtr rollerMotor = 
+    FollowableTalonSRXPtr pivotMotor = 
         createTalonSRXGroup(ballPivotMotors, true, NeutralMode::Brake);
 
-    if (rollerMotor) {
-        rollerMotor->ConfigPeakOutputForward(.3);
-        rollerMotor->ConfigPeakOutputReverse(-.3);
+    if (pivotMotor) {
+        TalonSRXConfiguration config;
+        using ctre::phoenix::motorcontrol::VelocityMeasPeriod;
+        using ctre::phoenix::motorcontrol::FeedbackDevice;
+        config.velocityMeasurementPeriod = VelocityMeasPeriod::Period_20Ms;
+        config.velocityMeasurementWindow = 4;
+        config.peakOutputForward = .6;
+        config.peakOutputReverse = -.6;        
 
-        std::unique_ptr<subsystems::SimpleActuator> actuator = 
-            std::make_unique<subsystems::SimpleActuator>
-            (adaptMotor(std::move(rollerMotor)), "BallPickupPivot");
+        pivotMotor->ConfigAllSettings(config);
+        pivotMotor->ConfigSelectedFeedbackSensor(FeedbackDevice::CTRE_MagEncoder_Absolute);
+
+        IPIDMotorPtr pidPivotMotor = adaptMotor(std::move(pivotMotor), 4096);
+
+        pidPivotMotor->setAcceptableError(.02);
+        pidPivotMotor->setPIDMaxForwardOutput(.3);
+        pidPivotMotor->setP(2);
+        pidPivotMotor->setD(20);
+
+        std::unique_ptr<subsystems::PIDActuator> actuator = 
+            std::make_unique<subsystems::PIDActuator>
+            (std::move(pidPivotMotor), "BallPickupPivot");
+
+        actuator->setHoldPositionEnabled(true);
 
         commands::ActuateJoystick::Config actuatorConfig;
         actuatorConfig.input = Input::ballPickupPivot;
 
         actuator->SetDefaultCommand(
-            std::make_unique<commands::ActuateJoystick>(
+            std::make_shared<commands::ActuateJoystick>(
                 actuator.get(), actuatorConfig));
 
         return std::move(actuator);
@@ -180,23 +195,47 @@ SubsystemPtr initBallPickupRollers()
 {
     using constants::ports::ballRollerMotors;
 
-    FollowableTalonSRXPtr rollerMotor = 
-        createTalonSRXGroup(ballRollerMotors, false, NeutralMode::Brake);
+    FollowableTalonSRXPtr pivotMotor = 
+        createTalonSRXGroup(ballRollerMotors, true, NeutralMode::Brake);
 
-    if (rollerMotor) {
-        rollerMotor->ConfigPeakOutputForward(1);
-        rollerMotor->ConfigPeakOutputReverse(-1);
+    if (pivotMotor) {
+        pivotMotor->ConfigPeakOutputForward(1);
+        pivotMotor->ConfigPeakOutputReverse(-1);
 
         std::unique_ptr<subsystems::SimpleActuator> actuator = 
             std::make_unique<subsystems::SimpleActuator>
-            (adaptMotor(std::move(rollerMotor)), "BallPickupRollers");
+            (adaptMotor(std::move(pivotMotor)), "BallPickupRollers");
 
         commands::ActuateJoystick::Config actuatorConfig;
         actuatorConfig.input = Input::ballPickupRollers;
 
         actuator->SetDefaultCommand(
-            std::make_unique<commands::ActuateJoystick>(
+            std::make_shared<commands::ActuateJoystick>(
                 actuator.get(), actuatorConfig));
+
+        return std::move(actuator);
+    }
+
+    return nullptr;
+}
+
+SubsystemPtr initHatchHook()
+{
+    using constants::ports::hatchHookMotors;
+
+    FollowableTalonSRXPtr hatchHookMotor = 
+        createTalonSRXGroup(hatchHookMotors, false, NeutralMode::Brake);
+
+    if (hatchHookMotor) {
+        hatchHookMotor->ConfigPeakOutputReverse(-.33);
+        hatchHookMotor->ConfigPeakOutputForward(.33);
+
+        std::unique_ptr<subsystems::SimpleActuator> actuator = 
+            std::make_unique<subsystems::SimpleActuator>
+            (adaptMotor(std::move(hatchHookMotor)), "HatchHook");
+
+        commands::ActuateJoystick::Config actuatorConfig;
+        actuatorConfig.input = Input::hatchHook;
 
         return std::move(actuator);
     }
@@ -211,6 +250,7 @@ SubsystemMap initSubsystems()
     subsystems[Subsystem::Elevator] = initElevator();
     subsystems[Subsystem::BallPickupPivot] = initBallPickupPivot();
     subsystems[Subsystem::BallPickupRollers] = initBallPickupRollers();
+    subsystems[Subsystem::HatchHook] = initHatchHook();
     return std::move(subsystems);
 }
 

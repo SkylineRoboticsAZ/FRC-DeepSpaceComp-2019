@@ -17,6 +17,7 @@ public:
 
     virtual double getDisplacement() const = 0;
     virtual double getRate() const = 0;
+    virtual void reset() = 0;
 };
 
 }

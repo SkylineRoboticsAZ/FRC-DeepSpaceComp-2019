@@ -21,7 +21,7 @@ namespace triggers
 class TriggerBase : public frc::Trigger
 {
 public:
-    typedef std::unique_ptr<frc::Command> CommandPtr;
+    typedef std::shared_ptr<frc::Command> CommandPtr;
     typedef std::vector<CommandPtr> CommandPtrList;
 
     TriggerBase();

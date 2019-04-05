@@ -18,9 +18,9 @@ public:
     virtual ~SubsystemBase() {}
 
     virtual void InitDefaultCommand() {};
-    void SetDefaultCommand(std::unique_ptr<frc::Command> command);
+    void SetDefaultCommand(std::shared_ptr<frc::Command> command);
 private:
-    std::unique_ptr<frc::Command> mDefaultCommand;
+    std::shared_ptr<frc::Command> mDefaultCommand;
 };
 
 }

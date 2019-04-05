@@ -49,14 +49,17 @@ public:
     void setPIDMaxForwardOutput(double percentPower) override;
     void setPIDMaxReverseOutput(double percentPower) override;
 
+    void zeroSensorPosition() override;
+
     double p() const override;
     double i() const override;
     double d() const override;
     double f() const override;
     double rampingPeriod() const override;
     double acceptableError() const override;
-    double PIDMaxForwardOutput() override;
-    double PIDMaxReverseOutput() override;
+    double PIDMaxForwardOutput() const override;
+    double PIDMaxReverseOutput() const override;
+    bool isAtTarget() const override;
 
     Mode mode() const override;
     void set(Mode mode, double value) override;

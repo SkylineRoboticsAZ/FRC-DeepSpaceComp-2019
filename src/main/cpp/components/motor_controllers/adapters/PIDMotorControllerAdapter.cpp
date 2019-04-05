@@ -104,6 +104,22 @@ void PIDMotorControllerAdapter::setPIDMaxReverseOutput(double percentPower)
     mMaxReverseOutput = fabs(percentPower);
 }
 
+bool PIDMotorControllerAdapter::isAtTarget() const
+{
+    switch (mode()) {
+        case Mode::PercentOutput:
+            return true;
+        case Mode::Position:
+        case Mode::Velocity:
+            return mPIDController->OnTarget();
+    }
+}
+
+void PIDMotorControllerAdapter::zeroSensorPosition() 
+{
+    mSensor->reset();
+}
+
 double PIDMotorControllerAdapter::p() const
 {
     return mPIDController->GetP();
@@ -137,12 +153,12 @@ double PIDMotorControllerAdapter::acceptableError() const
     return mAbsoluteTolerance;
 }
 
-double PIDMotorControllerAdapter::PIDMaxForwardOutput()
+double PIDMotorControllerAdapter::PIDMaxForwardOutput() const
 {
     return mMaxForwardOutput;
 }
 
-double PIDMotorControllerAdapter::PIDMaxReverseOutput()
+double PIDMotorControllerAdapter::PIDMaxReverseOutput() const
 {
     return mMaxReverseOutput;
 }

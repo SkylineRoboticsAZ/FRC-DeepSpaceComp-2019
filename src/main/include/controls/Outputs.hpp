@@ -18,7 +18,6 @@ namespace controls
 enum class Output : unsigned int
 {
     // Controller 1
-    None,
     leftThrottle,
     rightThrottle,
     netThrottle,
@@ -34,7 +33,12 @@ enum class Output : unsigned int
     sBButton,
     sRbXButton,
     sRbYButton,
-    sRbBButton
+    sRbBButton,
+    sLbButton,
+
+    // Virtual
+    None,
+    hatchHookEnabled
 };
 
 }
