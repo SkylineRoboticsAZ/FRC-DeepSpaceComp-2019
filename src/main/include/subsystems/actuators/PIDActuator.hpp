@@ -38,6 +38,11 @@ public:
     void setHoldPositionEnabled(bool isEnabled);
     bool isHoldPositionEnabled() const;
 
+    void setForwardSoftLimit(double limit);
+    void setReverseSoftLimit(double limit);
+    void setForwardSoftLimitEnabled(bool enabled);
+    void setReverseSoftLimitEnabled(bool enabled);
+
     void zeroPosition();
 
     double position() const;

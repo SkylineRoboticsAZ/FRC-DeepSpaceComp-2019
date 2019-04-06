@@ -10,7 +10,10 @@ namespace commands
 {
 
 SetElevatorPosition::SetElevatorPosition(Elevator *elevator, Elevator::Position position) : 
-mElevator(elevator), mPosition(position) {}
+mElevator(elevator), mPosition(position) 
+{
+    Requires(mElevator);
+}
 
 // Called just before this Command runs the first time
 void SetElevatorPosition::Initialize()

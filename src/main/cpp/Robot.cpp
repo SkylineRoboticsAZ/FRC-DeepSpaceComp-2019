@@ -52,8 +52,7 @@ void Robot::RobotInit()
     triggers::initTriggers();
     controls::initControlBindings();
 
-    frc::CameraServer::GetInstance()->StartAutomaticCapture(0).SetFPS(15);
-    frc::CameraServer::GetInstance()->StartAutomaticCapture(1).SetFPS(15);
+    frc::CameraServer::GetInstance()->StartAutomaticCapture(0).SetFPS(30);
 }
 
 void Robot::RobotPeriodic()

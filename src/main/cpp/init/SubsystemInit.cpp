@@ -41,10 +41,10 @@ SubsystemPtr initDriveTrain()
 
     if (leftDriveMotors.size() > 0 && rightDriveMotors.size() > 0) {
         FollowableTalonSRXPtr leftTalon = 
-            createTalonSRXGroup(leftDriveMotors, false, NeutralMode::Coast, .2);
+            createTalonSRXGroup(leftDriveMotors, false, NeutralMode::Coast, .15);
 
         FollowableTalonSRXPtr rightTalon =
-            createTalonSRXGroup(rightDriveMotors, true, NeutralMode::Coast, .2);
+            createTalonSRXGroup(rightDriveMotors, true, NeutralMode::Coast, .15);
 
         IBasicMotorPtr leftMotor = adaptMotor(std::move(leftTalon));
         IBasicMotorPtr rightMotor = adaptMotor(std::move(rightTalon));
@@ -160,12 +160,17 @@ SubsystemPtr initBallPickupPivot()
         config.velocityMeasurementPeriod = VelocityMeasPeriod::Period_20Ms;
         config.velocityMeasurementWindow = 4;
         config.peakOutputForward = .6;
-        config.peakOutputReverse = -.6;        
+        config.peakOutputReverse = -.6;
 
         pivotMotor->ConfigAllSettings(config);
         pivotMotor->ConfigSelectedFeedbackSensor(FeedbackDevice::CTRE_MagEncoder_Absolute);
 
         IPIDMotorPtr pidPivotMotor = adaptMotor(std::move(pivotMotor), 4096);
+
+        pidPivotMotor->setForwardSoftLimit(.95);
+        pidPivotMotor->setReverseSoftLimit(0);
+        pidPivotMotor->setForwardLimitEnabled(true);
+        pidPivotMotor->setReverseLimitEnabled(true);
 
         pidPivotMotor->setAcceptableError(.02);
         pidPivotMotor->setPIDMaxForwardOutput(.3);
@@ -227,8 +232,8 @@ SubsystemPtr initHatchHook()
         createTalonSRXGroup(hatchHookMotors, false, NeutralMode::Brake);
 
     if (hatchHookMotor) {
-        hatchHookMotor->ConfigPeakOutputReverse(-.33);
-        hatchHookMotor->ConfigPeakOutputForward(.33);
+        hatchHookMotor->ConfigPeakOutputForward(1);
+        hatchHookMotor->ConfigPeakOutputReverse(-1);
 
         std::unique_ptr<subsystems::SimpleActuator> actuator = 
             std::make_unique<subsystems::SimpleActuator>

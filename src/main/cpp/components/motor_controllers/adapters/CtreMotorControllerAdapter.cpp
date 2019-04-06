@@ -75,6 +75,26 @@ bool CtreMotorControllerAdapter::isAtTarget() const
         ParamEnum::eProfileParamSlot_AllowableErr, 0, mTimeoutMs);
 }
 
+void CtreMotorControllerAdapter::setForwardSoftLimit(double limit)
+{
+    mMotor->ConfigForwardSoftLimitThreshold(limit * mSensorScaleFactor, mTimeoutMs);
+}
+
+void CtreMotorControllerAdapter::setReverseSoftLimit(double limit)
+{
+    mMotor->ConfigReverseSoftLimitThreshold(limit * mSensorScaleFactor, mTimeoutMs);
+}
+
+void CtreMotorControllerAdapter::setForwardLimitEnabled(bool enabled)
+{
+    mMotor->ConfigForwardSoftLimitEnable(enabled, mTimeoutMs);
+}
+
+void CtreMotorControllerAdapter::setReverseLimitEnabled(bool enabled)
+{
+    mMotor->ConfigReverseSoftLimitEnable(enabled, mTimeoutMs);
+}
+
 void CtreMotorControllerAdapter::zeroSensorPosition()
 {
     mMotor->SetSelectedSensorPosition(0, 0, mTimeoutMs);

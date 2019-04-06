@@ -61,6 +61,11 @@ public:
     double PIDMaxReverseOutput() const override;
     bool isAtTarget() const override;
 
+    void setForwardSoftLimit(double limit) override;
+    void setReverseSoftLimit(double limit) override;
+    void setForwardLimitEnabled(bool enabled) override;
+    void setReverseLimitEnabled(bool enabled) override;
+
     Mode mode() const override;
     void set(Mode mode, double value) override;
 

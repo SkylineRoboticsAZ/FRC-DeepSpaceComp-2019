@@ -49,6 +49,26 @@ bool PIDActuator::isHoldPositionEnabled() const
     return mHoldPositionEnabled;
 }
 
+void PIDActuator::setForwardSoftLimit(double limit)
+{
+    mMotor->setForwardSoftLimit(limit);
+}
+
+void PIDActuator::setReverseSoftLimit(double limit)
+{
+    mMotor->setReverseSoftLimit(limit);
+}
+
+void PIDActuator::setForwardSoftLimitEnabled(bool enabled)
+{
+    mMotor->setForwardLimitEnabled(enabled);
+}
+
+void PIDActuator::setReverseSoftLimitEnabled(bool enabled)
+{
+    mMotor->setReverseLimitEnabled(enabled);
+}
+
 void PIDActuator::zeroPosition()
 {
     mMotor->zeroSensorPosition();

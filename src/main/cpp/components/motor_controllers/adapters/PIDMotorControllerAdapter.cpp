@@ -115,6 +115,26 @@ bool PIDMotorControllerAdapter::isAtTarget() const
     }
 }
 
+void PIDMotorControllerAdapter::setForwardSoftLimit(double limit)
+{
+    
+}
+
+void PIDMotorControllerAdapter::setReverseSoftLimit(double limit)
+{
+
+}
+
+void PIDMotorControllerAdapter::setForwardLimitEnabled(bool enabled)
+{
+
+}
+
+void PIDMotorControllerAdapter::setReverseLimitEnabled(bool enabled)
+{
+
+}
+
 void PIDMotorControllerAdapter::zeroSensorPosition() 
 {
     mSensor->reset();

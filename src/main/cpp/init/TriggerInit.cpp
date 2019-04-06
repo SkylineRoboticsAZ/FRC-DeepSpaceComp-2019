@@ -11,6 +11,7 @@
 #include "commands/SetElevatorPosition.hpp"
 #include "commands/ActuateJoystick.hpp"
 #include "commands/CommandGroup.hpp"
+#include "commands/SetSoftLimitsEnabled.hpp"
 
 #include "controls/Inputs.hpp"
 
@@ -45,6 +46,7 @@ void initTriggers()
     using subsystems::SimpleActuator;
     using commands::SetElevatorPosition;
     using commands::MoveActuatorPastPosition;
+    using commands::SetSoftLimitsEnabled;
     using commands::ActuateJoystick;
     using commands::CommandGroup;
 
@@ -75,16 +77,28 @@ void initTriggers()
         // kicking out the front arm before the elevator moves
         if (ballPickupPivot)
         {
-            typedef MoveActuatorPastPosition::Mode Mode;
+            typedef MoveActuatorPastPosition::Mode PastPositionMode;
 
             for (std::shared_ptr<CommandGroup> &group : commands)
                 group->AddSequential(std::make_shared<MoveActuatorPastPosition>
                 (ballPickupPivot, constants::ballPickupPivot::kickoutPosition,
-                 Mode::GreaterThanTarget));
+                 PastPositionMode::GreaterThanTarget));
 
             elevatorManualControlCommand->AddSequential(std::make_shared<MoveActuatorPastPosition>
                 (ballPickupPivot, constants::ballPickupPivot::kickoutPosition,
-                 Mode::GreaterThanTarget));
+                 PastPositionMode::GreaterThanTarget));
+
+            BoolTriggerPtr disableLimits = 
+                std::make_unique<BoolTrigger>(Input::ballPickupPivotDisableLimits);
+
+            typedef SetSoftLimitsEnabled::Mode SoftLimitMode;
+
+            disableLimits->WhenActive(std::make_shared<SetSoftLimitsEnabled>(
+                ballPickupPivot, SoftLimitMode::Forward, false));
+            disableLimits->WhenInactive(std::make_shared<SetSoftLimitsEnabled>(
+                ballPickupPivot, SoftLimitMode::Forward, true));
+
+            kTriggers.push_back(std::move(disableLimits));
         }
 
         for (int i = 0; i < 7; i++)

@@ -35,6 +35,7 @@ enum class Output : unsigned int
     sRbYButton,
     sRbBButton,
     sLbButton,
+    sLeftStickButton,
 
     // Virtual
     None,

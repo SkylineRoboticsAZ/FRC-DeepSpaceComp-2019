@@ -30,6 +30,7 @@ enum class Input : unsigned int
     elevatorDiskTop,
     elevatorBallTop,
     ballPickupPivot,
+    ballPickupPivotDisableLimits,
     ballPickupRollers,
     hatchHook,
     hatchHookTrigger

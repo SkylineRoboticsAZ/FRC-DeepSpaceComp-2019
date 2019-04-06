@@ -35,6 +35,11 @@ public:
     virtual void setAcceptableError(double error) = 0;
     virtual void setPIDMaxForwardOutput(double percentPower) = 0;
     virtual void setPIDMaxReverseOutput(double percentPower) = 0;
+    
+    virtual void setForwardSoftLimit(double limit) = 0;
+    virtual void setReverseSoftLimit(double limit) = 0;
+    virtual void setForwardLimitEnabled(bool enabled) = 0;
+    virtual void setReverseLimitEnabled(bool enabled) = 0;
 
     virtual void zeroSensorPosition() = 0;
 

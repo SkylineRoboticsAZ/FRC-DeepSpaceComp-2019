@@ -24,7 +24,7 @@ namespace constants
         const std::vector<int> leftDriveMotors({7, 8, 9});
         const std::vector<int> rightDriveMotors({10, 11, 12});
         const std::vector<int> elevatorMotors({2, 3});
-        const std::vector<int> hatchHookMotors({4});
+        const std::vector<int> hatchHookMotors({});
     }
 
     namespace ballPickupPivot

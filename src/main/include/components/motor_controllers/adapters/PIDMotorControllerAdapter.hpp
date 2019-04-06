@@ -34,6 +34,12 @@ public:
     void setPIDMaxForwardOutput(double percentPower) override;
     void setPIDMaxReverseOutput(double percentPower) override;
 
+    // TO-DO IMPLEMENT THESE
+    void setForwardSoftLimit(double limit) override;
+    void setReverseSoftLimit(double limit) override;
+    void setForwardLimitEnabled(bool enabled) override;
+    void setReverseLimitEnabled(bool enabled) override;
+
     void zeroSensorPosition() override;
 
     double p() const override;

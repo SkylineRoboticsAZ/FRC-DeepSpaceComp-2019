@@ -141,6 +141,10 @@ OutputControlMap initializeOutputs()
         .joystick(&kAuxJoystick, IControl::Bool, 5)
         .build();
 
+    ControlPtr leftStickButton = ControlBuilder()
+        .joystick(&kAuxJoystick, IControl::Bool, 9)
+        .build();
+
     // Controller 1
     /*controlMap[Output::leftThrottle] = leftThrottle;
     controlMap[Output::rightThrottle] = rightThrottle;*/
@@ -159,6 +163,7 @@ OutputControlMap initializeOutputs()
     controlMap[Output::sLeftStickY] = sLeftStickY;
     controlMap[Output::sNetTriggers] = netTriggers;
     controlMap[Output::sLbButton] = hatchHookTrigger;
+    controlMap[Output::sLeftStickButton] = leftStickButton;
 
     // Virtual
     controlMap[Output::None] = none;
@@ -191,6 +196,7 @@ void initControlBindings()
     driverStation.assignOutputToInput(Output::sLeftStickY, Input::ballPickupPivot);
     driverStation.assignOutputToInput(Output::sNetTriggers, Input::ballPickupRollers);
     driverStation.assignOutputToInput(Output::sLbButton, Input::hatchHookTrigger);
+    driverStation.assignOutputToInput(Output::sLeftStickButton, Input::ballPickupPivotDisableLimits);
 
     // Virtual
     driverStation.assignOutputToInput(Output::hatchHookEnabled, Input::hatchHook);
