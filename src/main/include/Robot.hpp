@@ -17,6 +17,7 @@ namespace frc
 {
 
 class Trigger;
+class Command;
 
 }
 
@@ -59,6 +60,7 @@ private:
     void initControlAssignments();
 
     static std::unordered_map<subsystems::Subsystem, SubsystemPtr> kSubsystems;
+    std::unique_ptr<frc::Command> mVelocityLog;
 };
 
 }

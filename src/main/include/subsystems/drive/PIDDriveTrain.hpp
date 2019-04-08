@@ -33,13 +33,25 @@ public:
         double maxVelocity, const wpi::Twine &name = "PIDDriveTrain");
     ~PIDDriveTrain();
 
+    enum class Mode
+    {
+        PercentPower, Velocity
+    };
+
+    void setMode(Mode mode);
+
     void setLeftPower(double percentPower) override;
     void setRightPower(double percentPower) override;
 
+    Mode mode() const;
     double velocityTarget() const;
     double sensorVelocity() const;
 
+    double leftVelocity() const;
+    double rightVelocity() const;
+
 private:
+    Mode mMode = Mode::PercentPower;
     Motor mLeftMotor, mRightMotor;
     const double mMaxVelocity;
     double mLeftTarget = 0, 

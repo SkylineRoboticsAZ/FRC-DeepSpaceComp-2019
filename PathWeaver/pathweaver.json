@@ -1,0 +1,10 @@
+{
+  "lengthUnit": "Foot",
+  "timeStep": 0.001,
+  "maxVelocity": 10.0,
+  "maxAcceleration": 20.0,
+  "maxJerk": 20.0,
+  "wheelBase": 2.2,
+  "gameName": "Destination: Deep Space",
+  "outputDir": ""
+}

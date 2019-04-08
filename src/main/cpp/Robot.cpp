@@ -14,8 +14,10 @@
 #include "subsystems/Subsystems.hpp"
 #include "subsystems/SubsystemBase.hpp"
 #include "subsystems/actuators/PIDActuator.hpp"
+#include "subsystems/drive/PIDDriveTrain.hpp"
 
 #include "commands/Commands.hpp"
+#include "commands/logging/LogVelocity.hpp"
 
 #include <frc/commands/Scheduler.h>
 #include <frc/buttons/Trigger.h>
@@ -53,6 +55,16 @@ void Robot::RobotInit()
     controls::initControlBindings();
 
     frc::CameraServer::GetInstance()->StartAutomaticCapture(0).SetFPS(30);
+
+    subsystems::PIDDriveTrain *driveTrain = 
+        static_cast<subsystems::PIDDriveTrain*>
+        (getSubsystem(subsystems::Subsystem::DriveTrain));
+
+    if (driveTrain)
+        mVelocityLog = std::make_unique<commands::LogVelocity>
+        (driveTrain, "/home/lvuser/velocity.txt");
+    else
+        mVelocityLog = nullptr;
 }
 
 void Robot::RobotPeriodic()
@@ -61,6 +73,8 @@ void Robot::RobotPeriodic()
 
 void Robot::DisabledInit()
 {
+    if (mVelocityLog && mVelocityLog->IsRunning())
+        mVelocityLog->Cancel();
 }
 
 void Robot::DisabledPeriodic()
@@ -77,6 +91,9 @@ void Robot::AutonomousInit()
 
     if (ballPickupPivot)
         ballPickupPivot->zeroPosition();
+
+    if (mVelocityLog)
+        mVelocityLog->Start();
 }
 
 void Robot::AutonomousPeriodic()
@@ -86,6 +103,8 @@ void Robot::AutonomousPeriodic()
 
 void Robot::TeleopInit()
 {
+    if (mVelocityLog)
+        mVelocityLog->Start();
 }
 
 void Robot::TeleopPeriodic()
