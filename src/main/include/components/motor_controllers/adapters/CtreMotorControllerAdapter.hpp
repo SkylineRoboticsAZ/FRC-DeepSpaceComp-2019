@@ -83,7 +83,7 @@ public:
 private:
     std::unique_ptr<Motor> mMotor;
     const double mCtrePIDScale = 1023;
-    const double mTimeoutMs = 1000;
+    const double mTimeoutMs = 100;
     const double mSensorScaleFactor;
 
     double scalePIDF(double unscaledValue) const;

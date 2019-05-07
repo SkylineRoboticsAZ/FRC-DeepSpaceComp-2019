@@ -60,11 +60,12 @@ void Robot::RobotInit()
         static_cast<subsystems::PIDDriveTrain*>
         (getSubsystem(subsystems::Subsystem::DriveTrain));
 
-    if (driveTrain)
+    /*if (driveTrain)
         mVelocityLog = std::make_unique<commands::LogVelocity>
         (driveTrain, "/home/lvuser/velocity.txt");
     else
-        mVelocityLog = nullptr;
+        mVelocityLog = nullptr;*/
+    mVelocityLog = nullptr;
 }
 
 void Robot::RobotPeriodic()
